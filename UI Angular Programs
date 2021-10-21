@@ -1,0 +1,359 @@
+======================================================================
+Programs using crud operation,matcheckbox matradio,table,bootstrap,validation,datepicker.
+
+======================================================================
+component.ts
+----------------------------------------
+import { Component, OnInit } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+
+import { Person } from './person';
+ 
+import { PostserviceService } from './postservice.service';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnInit{
+  title = 'Project4';
+  
+  
+
+  
+  HobbiesList=["Dancing","Singing","Playing","Reading"];
+  
+  people!: Person[];
+  person = new Person();
+ 
+  constructor(private ps:PostserviceService) {
+
+  }
+
+ 
+  ngOnInit() {
+    this.refreshPeople()
+
+    
+  }
+ 
+  refreshPeople() {
+    this.ps.getPeople()
+      .subscribe(data => {
+        console.log(data)
+        this.people=data;
+      })      
+ 
+  }
+ 
+  addPerson() {
+    this.ps.addPerson(this.person)
+      .subscribe(data => {
+        console.log(data)
+        this.refreshPeople();
+
+   
+       
+      })      
+  }
+
+ 
+
+
+}
+----------------------------------------------------------------------------------------------------------------------------------
+html
+
+ <h1>WELCOME TO MY FORM</h1>
+ 
+ <img src="https://thumbs.dreamstime.com/b/woman-showing-personal-information-idea-cloud-computing-security-personal-information-concept-102467586.jpg">
+
+ <h2>Personal Details</h2>
+ 
+<div id="id1" class="col-lg-3">
+   <div class="form-group"   [class.has.error]="name.invalid && name.touched"
+[class.has.success]="name.valid">
+
+<label>Name</label>
+<input required name="name" type="text" #name="ngModel" [(ngModel)]="person.name" class="form-control"/>
+<br>
+<span class="c3"
+*ngIf="name.invalid && name.touched">
+Name is Required
+</span>
+</div>
+<br>
+ <label>Birth Date : </label>
+  <mat-form-field>
+<input matInput [matDatepicker]="datepicker" [(ngModel)]="person.date" min="1990-01-01">
+<mat-datepicker-toggle [for]="datepicker" matSuffix></mat-datepicker-toggle>
+<mat-datepicker #datepicker></mat-datepicker>
+     
+</mat-form-field>
+  
+ <br>
+  <br>
+  
+  <div class="form-group">
+    <label>Username :- </label>
+    <input  [(ngModel)]="person.username" class="form-control"/>
+  </div>
+ 
+
+  
+  
+  <br>
+
+<div class="dropdown" [class.has.error]="hobbies.invalid && hobbies.touched" 
+[class.has.success]="hobbies.valid">
+  <label for="hobbies">Hobbies :-  </label>
+  <select id="hobbies" name="city" [(ngModel)]="person.hobbies" required #hobbies="ngModel" class="form-select">
+    <option [ngValue]="h" *ngFor="let h of HobbiesList">
+      {{h}}
+    </option>
+  </select><br>
+  <span class="c3" *ngIf="hobbies.invalid && hobbies.touched">
+  Please Select Hobbies 
+  </span>
+</div> 
+
+  <br>
+  <div class="form-group"   [class.has.error]="email.invalid && email.touched"
+[class.has.success]="email.valid">
+
+<label>Email :- </label>
+<input required name="email" type="text" #email="ngModel" [(ngModel)]="person.email" class="form-control"/>
+<br>
+<span class="c3"
+*ngIf="email.invalid && email.touched">
+Please Enter Email Address
+</span>
+</div>
+
+  <br>
+  
+<div>Gender :- </div>
+<mat-radio-group [(ngModel)]="person.gender">
+  <mat-radio-button  value="Male">Male</mat-radio-button>
+  <mat-radio-button   value="Female">Female</mat-radio-button>
+</mat-radio-group>
+
+<br><br>
+
+<div><strong>Select your favorite seasons :- </strong></div>
+<br>
+
+<mat-checkbox  color="primary" [(ngModel)]="person.season">
+Winter
+</mat-checkbox>
+<br>
+<mat-checkbox color="primary">
+Summer
+</mat-checkbox>
+  <br>
+
+<mat-checkbox color="primary">
+Spring
+</mat-checkbox>
+  <br>
+
+<mat-checkbox color="primary">
+  Autumn
+</mat-checkbox>
+
+  <div>
+    <br><button  class="btn-success" type="submit" (click)="addPerson()" [disabled]="name.invalid || email.invalid" onclick="alert('Data Saved Sucessfully')">Add</button>
+  </div>
+
+</div>
+
+<br><br>
+<table class="table table-bordered table-hover table-condensed">
+  <thead>
+    <tr class="table-danger">
+      <th>ID</th>
+      <th>Name</th>
+      <th>Birth Date</th>
+      <th>Username</th>
+      <th>Hobbies</th>
+      <th>Email</th>
+      <th>Gender</th>
+      <th>Season</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let person of people" class="table-info">
+      <td>{{person.id}}</td>
+      <td>{{person.name}}</td>
+      <td>{{person.date}}</td>
+      <td>{{person.username}}</td>
+      <td>{{person.hobbies}}</td>
+      <td>{{person.email}}</td>
+      <td>{{person.gender}}</td>
+      <td>{{person.season}}</td>
+    </tr>
+  </tbody>
+</table>
+------------------------------------------------------------------------------------------------------------
+service.ts
+
+import { Injectable, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Person } from './person';
+import { Observable } from 'rxjs';
+
+
+@Injectable({
+  providedIn: 'root'
+})
+
+
+export class PostserviceService {
+
+
+url :string='http://localhost:3000/'
+
+  constructor(private http: HttpClient) { }
+  
+
+  getPeople(): Observable<Person[]> {
+    console.log('getPeople '+this.url + 'posts')
+    return this.http.get<Person[]>(this.url + 'posts')
+  }
+ 
+  addPerson(person:Person): Observable<any> {
+    const headers = { 'content-type': 'application/json'}  
+    const body=JSON.stringify(person);
+    console.log(body)
+    return this.http.post(this.url + 'posts', body,{'headers':headers})
+  }
+ 
+  
+  }
+
+  
+--------------------------------------------------------------------------------------------------------------------
+person.ts
+
+
+
+
+export class Person {
+   
+   id!: number
+    name!: string
+    username!: string
+    hobbies!:string
+    email!: string
+    gender!:string
+    season!:string
+    date!:Date
+
+    
+
+
+  }
+   ----------------------------------------------------------------------------------------------------------------------------------------------------
+   
+   
+   module.ts
+   
+   import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
+import { HttpClientModule } from '@angular/common/http'; 
+import { FormsModule,ReactiveFormsModule} from '@angular/forms';
+import {MatCheckboxModule} from '@angular/material/checkbox'
+import {MatRadioModule} from '@angular/material/radio';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import {MatInputModule} from '@angular/material/input'
+
+
+@NgModule({
+  declarations: [
+    AppComponent,
+    
+   
+   
+  ],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    HttpClientModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatCheckboxModule,
+    MatRadioModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    BrowserAnimationsModule,
+    MatInputModule
+   
+  
+    
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+-------------------------------------------------------------
+css
+
+h1
+{
+   
+    background-color:pink;
+    font-size: 35px;
+   text-align: center;
+    
+}
+
+h2
+{
+    color:darkred;
+    
+}
+
+
+.mat-radio-button ~ .mat-radio-button {
+    margin-left: 16px;
+  }
+
+  div,input
+  {
+      padding: 6px;
+      
+  }
+#id1
+{
+    background-color:lightblue;
+}
+img
+{
+    height: 400px;
+    width: 400px;
+    float: right;
+    border-style: solid;
+    
+    
+    
+    
+}
+mat-datepicker-toggle
+
+{
+    color: darkred;
+}
+
+.c3
+{
+    color: red;
+}
+
+====================================================================================================================================================================
+===================================================
